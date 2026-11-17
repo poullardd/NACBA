@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NACBA Email Generator</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; background: #f4f4f4; margin: 0; padding: 16px; color: #222; }
+  .container { display: flex; gap: 20px; max-width: 1200px; margin: auto; align-items: flex-start; }
+  .panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.1); }
+  .form-panel { width: 40%; }
+  .preview-panel { width: 60%; }
+  h2 { color: #005596; margin: 0 0 12px; font-size: 20px; }
+  label { display: block; margin-top: 12px; font-weight: bold; font-size: 13px; }
+  .hint { font-weight: normal; color: #777; }
+  input[type=text], input[type=url], input[type=date], select, textarea { width: 100%; padding: 9px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: #fff; font-family: inherit; }
+  textarea { min-height: 110px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #005596; border-color: #005596; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .check { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+  .check input { width: auto; margin: 0; }
+  .check label { margin: 0; font-size: 13px; }
+  button { padding: 11px 15px; background: #005596; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
+  button:hover { background: #003d70; }
+  button.secondary { background: #fff; color: #005596; border: 1px solid #005596; }
+  button.secondary:hover { background: #eef5fb; }
+  .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .actions button { flex: 1; min-width: 140px; }
+  .meta-box { background: #f4f8fc; border: 1px solid #cfe0ef; border-radius: 4px; padding: 10px 12px; margin-bottom: 14px; }
+  .meta-box .k { font-size: 11px; font-weight: bold; color: #005596; text-transform: uppercase; letter-spacing: .5px; display: block; margin-top: 6px; }
+  .meta-box .k:first-child { margin-top: 0; }
+  .meta-box .v { font-size: 14px; word-break: break-word; }
+  #emailPreview { border: 1px solid #ddd; padding: 20px; border-radius: 4px; background: #fff; overflow-x: auto; }
+  #status { min-height: 20px; margin-top: 10px; font-size: 13px; color: #1a7f37; font-weight: bold; }
+  .warn { color: #b3261e; font-size: 12px; margin-top: 4px; }
+  @media (max-width: 820px) {
+    .container { flex-direction: column; }
+    .form-panel, .preview-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- FORM -->
+  <div class="panel form-panel">
+    <h2>NACBA Email Generator</h2>
+
+    <label for="template">Email type</label>
+    <select id="template">
+      <optgroup label="Webinars">
+        <option value="panelistInvite">Panelist access (day before)</option>
+        <option value="panelistDayOf">Panelist reminder (day of)</option>
+        <option value="attendeeReminder">Attendee reminder</option>
+        <option value="recording">Recording &amp; materials (post-webinar)</option>
+        <option value="analytics">Post-webinar analytics (to staff)</option>
+      </optgroup>
+      <optgroup label="Membership &amp; referrals">
+        <option value="renewal">Membership renewal reminder</option>
+        <option value="referral">Attorney referral</option>
+      </optgroup>
+    </select>
+
+    <div id="f-title">
+      <label for="webinarTitle">Webinar title</label>
+      <input type="text" id="webinarTitle" placeholder="e.g., Student Loan Adversary Proceedings in a Nutshell">
+    </div>
+
+    <div id="f-short">
+      <label for="shortName">Short name <span class="hint">(subject line)</span></label>
+      <input type="text" id="shortName" placeholder="e.g., SLAP in a Nutshell">
+    </div>
+
+    <div id="f-date">
+      <label for="dateVal">Webinar date</label>
+      <input type="date" id="dateVal">
+    </div>
+
+    <div id="f-name">
+      <label for="name">Panelist first name(s)</label>
+      <input type="text" id="name" placeholder="e.g., Stanley  or  Stanley and Alyssa" autocomplete="off">
+      <div class="check"><input type="checkbox" id="both"><label for="both">More than one panelist ("Thank you both")</label></div>
+    </div>
+
+    <div id="f-link">
+      <label for="link" id="linkLabel">Zoom panelist link</label>
+      <input type="url" id="link" placeholder="https://zoom.us/..." autocomplete="off">
+      <div class="warn" id="linkWarn" hidden>Link should start with https://</div>
+    </div>
+
+    <div class="row">
+      <div id="f-practice">
+        <label for="practice">Practice time (ET)</label>
+        <input type="text" id="practice" placeholder="e.g., 2:40 PM">
+      </div>
+      <div id="f-live">
+        <label for="live">Live start (ET)</label>
+        <input type="text" id="live" placeholder="e.g., 3:00 PM">
+      </div>
+    </div>
+
+    <div id="f-dropbox">
+      <label for="dropbox">Dropbox folder link</label>
+      <input type="url" id="dropbox" placeholder="https://www.dropbox.com/..." autocomplete="off">
+    </div>
+    <div id="f-survey">
+      <label for="survey">Survey link <span class="hint">(clear to omit)</span></label>
+      <input type="url" id="survey" value="https://www.surveymonkey.com/r/ST8YQML" autocomplete="off">
+    </div>
+    <div id="f-cle">
+      <label for="cle">CLE note</label>
+      <select id="cle">
+        <option value="no">NACBA does not provide CLE for this webinar</option>
+        <option value="none">Leave CLE note out</option>
+      </select>
+    </div>
+
+    <div id="f-stats">
+      <label>Webinar analytics</label>
+      <div class="row">
+        <div><input type="text" id="signups" placeholder="Total signups" inputmode="numeric"></div>
+        <div><input type="text" id="liveAtt" placeholder="Live attendance" inputmode="numeric"></div>
+      </div>
+      <div class="row">
+        <div><input type="text" id="onDemand" placeholder="On-demand / watch later" inputmode="numeric"></div>
+        <div><input type="text" id="revenue" placeholder="Revenue, e.g. $4,770"></div>
+      </div>
+      <div class="row">
+        <div><input type="text" id="members" placeholder="Members" inputmode="numeric"></div>
+        <div><input type="text" id="nonMembers" placeholder="Non-members" inputmode="numeric"></div>
+      </div>
+    </div>
+    <div id="f-highlights">
+      <label for="highlights">Highlights paragraph</label>
+      <textarea id="highlights">The engagement was fantastic, and we are already receiving great feedback on the sample forms and pleadings provided by [speaker names]. It is also great to see so many registrants using the on-demand recordings for professional development.</textarea>
+    </div>
+
+    <label for="logoPos">NACBA logo</label>
+    <select id="logoPos">
+      <option value="top">Top of email</option>
+      <option value="sig">Above signature</option>
+      <option value="none">No logo</option>
+    </select>
+
+    <div class="actions">
+      <button id="copyBtn">Copy email</button>
+      <button id="copySubjectBtn" class="secondary">Copy subject</button>
+    </div>
+    <div id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="panel preview-panel">
+    <h2>Live Preview</h2>
+    <div class="meta-box">
+      <span class="k">Subject</span><span class="v" id="subjectLine"></span>
+      <div id="recipBox" hidden><span class="k">Recipients</span><span class="v" id="recipLine"></span></div>
+    </div>
+    <div id="emailPreview"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var BLUE = '#005596';
+  var LINK = '#1155cc';
+  var NAVY = '#000080';
+  var LOGO = 'data:image/png;base64,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';
+  var $ = function (id) { return document.getElementById(id); };
+
+  var ALL = ['title', 'short', 'date', 'name', 'link', 'practice', 'live', 'dropbox', 'survey', 'cle', 'stats', 'highlights'];
+  var CONFIG = {
+    panelistInvite:   { show: ['date', 'name', 'link', 'practice', 'live'], linkLabel: 'Zoom panelist link' },
+    panelistDayOf:    { show: ['date', 'name', 'link', 'practice', 'live'], linkLabel: 'Zoom panelist link' },
+    attendeeReminder: { show: ['title', 'date', 'link', 'live'], linkLabel: 'Zoom registration / join link' },
+    recording:        { show: ['title', 'date', 'dropbox', 'survey', 'cle'], linkLabel: '' },
+    analytics:        { show: ['title', 'short', 'date', 'stats', 'highlights'], linkLabel: '' },
+    renewal:          { show: [], linkLabel: '' },
+    referral:         { show: [], linkLabel: '' }
+  };
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function val(id) { return $(id).value.trim(); }
+  function ph(text) { return '<span style="background:#fff3cd;padding:0 3px;">[' + esc(text) + ']</span>'; }
+  function field(id, placeholder) { var v = val(id); return v ? '<strong>' + esc(v) + '</strong>' : ph(placeholder); }
+  function plain(id, placeholder) { var v = val(id); return v ? esc(v) : ph(placeholder); }
+  function isUrl(u) { return /^https?:\/\//i.test(u); }
+  function safeUrl(u) { return isUrl(u) ? esc(u) : '#'; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  // ---- Dates ----
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  function getDate() {
+    var v = val('dateVal'); if (!v) return null;
+    var p = v.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+  function longDate(d) { return DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate(); }
+  function fullDate(d) { return MONTHS[d.getMonth()] + ' ' + pad(d.getDate()) + ', ' + d.getFullYear(); }
+  function numDate4(d) { return pad(d.getMonth() + 1) + '.' + pad(d.getDate()) + '.' + d.getFullYear(); }
+  function numDate2(d) { return pad(d.getMonth() + 1) + '.' + pad(d.getDate()) + '.' + String(d.getFullYear()).slice(-2); }
+  function dayDiff(d) {
+    var t = new Date(); t = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    return Math.round((d - t) / 86400000);
+  }
+  function when() {
+    var d = getDate();
+    if (!d) return { poss: ph('Date') + "'s", on: 'on ' + ph('Date') };
+    var diff = dayDiff(d);
+    if (diff === 1) return { poss: "tomorrow's", on: 'tomorrow' };
+    if (diff === 0) return { poss: "today's", on: 'today' };
+    return { poss: 'the ' + esc(longDate(d)), on: 'on ' + esc(longDate(d)) };
+  }
+  function whenPast() {
+    var d = getDate();
+    if (!d) return ph('date');
+    var diff = dayDiff(d);
+    if (diff === 0) return 'today';
+    if (diff === -1) return 'yesterday';
+    if (diff < -1 && diff >= -7) return 'this past ' + DAYS[d.getDay()];
+    return 'on ' + esc(longDate(d));
+  }
+
+  // ---- Building blocks ----
+  function button(label, url) {
+    return '<p style="margin:20px 0;"><a href="' + safeUrl(url) + '" style="display:inline-block;background-color:' + BLUE +
+      ';color:#ffffff;text-decoration:none;padding:12px 25px;border-radius:4px;font-weight:bold;font-family:Arial,Helvetica,sans-serif;">' +
+      esc(label) + '</a></p>';
+  }
+  function callout(title, items) {
+    var lis = items.map(function (t, i) {
+      return '<li style="margin-bottom:' + (i === items.length - 1 ? '0' : '10px') + ';">' + t + '</li>';
+    }).join('');
+    return '<div style="background-color:#f9f9f9;border-left:4px solid ' + BLUE + ';padding:15px;margin:20px 0;">' +
+      '<p style="margin:0 0 8px;font-weight:bold;color:' + BLUE + ';">' + esc(title) + '</p>' +
+      '<ul style="margin:0;padding-left:20px;">' + lis + '</ul></div>';
+  }
+  function logoImg(w, mb) {
+    return '<img src="' + LOGO + '" alt="National Association of Consumer Bankruptcy Attorneys" width="' + w + '" style="display:block;width:' + w + 'px;max-width:100%;height:auto;border:0;margin:0 0 ' + mb + 'px;">';
+  }
+  function signature(closing) {
+    var pos = $('logoPos').value;
+    var link = 'color:' + LINK + ';';
+    return '<p style="margin:0;">' + closing + '</p>' +
+      '<div style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333333;line-height:1.5;">' +
+      (pos === 'sig' ? logoImg(200, 10) : '') +
+      '<div style="font-size:17px;font-weight:bold;color:' + NAVY + ';">Deidre Durant</div>' +
+      '<div style="font-weight:bold;color:#333333;">Director of Operations</div>' +
+      '<div style="margin-top:12px;">National Association of Consumer Bankruptcy Attorneys</div>' +
+      '<div><a href="tel:8004999040" style="' + link + '">(800) 499-9040</a> &nbsp;|&nbsp; ' +
+      '<a href="mailto:deidre.durant@nacba.com" style="' + link + 'text-decoration:none;">deidre.durant@nacba.com</a> &nbsp;|&nbsp; ' +
+      '<a href="https://www.NACBA.org" style="' + link + 'text-decoration:none;">www.NACBA.org</a></div>' +
+      '<div style="margin-top:12px;font-weight:bold;font-style:italic;">Educate, Advocate, Litigate!</div>' +
+      '<div><a href="http://www.nacba.org/" style="' + link + 'text-decoration:none;">NACBA</a> is the only national organization dedicated to serving the needs of consumer bankruptcy attorneys and protecting the rights of consumer debtors in bankruptcy.</div>' +
+      '</div>';
+  }
+  function wrap(inner, closing) {
+    var pos = $('logoPos').value;
+    return '<div style="font-family:Arial,Helvetica,sans-serif;color:#333333;line-height:1.6;max-width:640px;font-size:15px;">' +
+      (pos === 'top' ? logoImg(240, 22) : '') + inner + signature(closing) + '</div>';
+  }
+
+  // ---- Templates ----
+  var BUILDERS = {
+    panelistInvite: function () {
+      var d = getDate(), w = when();
+      var thanks = $('both').checked ? 'Thank you both for joining us for ' : 'Thank you for joining us for ';
+      var body =
+        '<p>Hi ' + field('name', 'First Name') + ',</p>' +
+        '<p>' + thanks + w.poss + ' NACBA webinar. We are looking forward to a great session.</p>' +
+        '<p>Please use the panelist link below to join the webinar. This link is unique to you as a panelist and will allow you to share your screen and present.</p>' +
+        button('Zoom Panelist Link', val('link')) +
+        callout('A few quick notes:', [
+          'Please join by ' + field('practice', 'Practice Time') + ' ET for our practice session so we can test audio, video, and screen sharing before we go live at ' + field('live', 'Live Time') + ' ET.',
+          'Attendees will submit questions through the Q&amp;A box; I will monitor and pass questions to you during the session.',
+          'The webinar will be recorded automatically.'
+        ]) +
+        '<p>Please reach out if you have any questions before ' + (d && dayDiff(d) === 1 ? 'tomorrow' : 'then') + '. I look forward to connecting with you at ' + field('practice', 'Practice Time') + ' ET.</p>';
+      return { subject: 'NACBA Webinar - Panelist Access | ' + (d ? numDate4(d) : '[Date]'), html: wrap(body, 'Best regards,') };
+    },
+
+    panelistDayOf: function () {
+      var d = getDate();
+      var body =
+        '<p>Hi ' + field('name', 'First Name') + ',</p>' +
+        '<p>A quick reminder that today\'s NACBA webinar goes live at ' + field('live', 'Live Time') + ' ET. ' +
+        'Please join the practice session at ' + field('practice', 'Practice Time') + ' ET so we can check audio, video, and screen sharing.</p>' +
+        button('Zoom Panelist Link', val('link')) +
+        callout('Reminders:', [
+          'Attendees will submit questions through the Q&amp;A box; I will monitor and pass questions to you during the session.',
+          'The webinar will be recorded automatically.'
+        ]) +
+        '<p>I look forward to connecting with you at ' + field('practice', 'Practice Time') + ' ET.</p>';
+      return { subject: 'NACBA Webinar - Panelist Reminder | ' + (d ? numDate4(d) : '[Date]'), html: wrap(body, 'Best regards,') };
+    },
+
+    attendeeReminder: function () {
+      var t = val('webinarTitle'), d = getDate(), w = when();
+      var body =
+        '<p>Hello,</p>' +
+        '<p>This is a friendly reminder that NACBA\'s webinar' + (t ? ', <strong>' + esc(t) + '</strong>,' : '') + ' is ' + w.on + ' at ' + field('live', 'Live Time') + ' ET.</p>' +
+        button('Join the Webinar', val('link')) +
+        callout('Before you join:', [
+          'Please log in a few minutes early to make sure your audio is working.',
+          'Submit questions at any time using the Q&amp;A box in Zoom.',
+          'The webinar will be recorded.'
+        ]) +
+        '<p>We look forward to seeing you.</p>';
+      return { subject: 'Reminder: NACBA Webinar ' + (t ? '- ' + t + ' ' : '') + '| ' + (d ? numDate4(d) : '[Date]'), html: wrap(body, 'Thank you,') };
+    },
+
+    recording: function () {
+      var t = val('webinarTitle'), d = getDate();
+      var cle = $('cle').value === 'no' ? ' <em>(Note: NACBA does not provide CLE for this webinar).</em>' : '';
+      var survey = val('survey');
+      var body =
+        '<p>Hello,</p>' +
+        '<p>Thank you for participating in NACBA\'s Webinar, ' + (t ? esc(t) : ph('Webinar Title')) + ', presented on ' + (d ? esc(fullDate(d)) : ph('Date')) + '.</p>' +
+        '<p style="margin-bottom:0;"><strong>Webinar Materials &amp; Recording</strong><br>' +
+        'Below is the link to download the webinar materials, including a Certificate of Attendance that you may submit to your appropriate MCLE Board, as well as the full webinar recording.' + cle + '</p>' +
+        button('Access Materials & Recording', val('dropbox')) +
+        (survey
+          ? '<p style="margin-bottom:0;"><strong>We want your feedback!</strong> To help us continue providing the best educational programming, please take a quick moment to fill out our post-webinar survey.</p>' +
+            button('Take the Survey', survey)
+          : '') +
+        '<p>Please email <a href="mailto:admin@nacba.com" style="color:' + LINK + ';">admin@nacba.com</a> directly if you have any trouble accessing the materials.</p>';
+      return { subject: 'NACBA Webinar Recording & Materials: ' + (t || '[Webinar Title]') + ' (' + (d ? numDate2(d) : '[Date]') + ')', html: wrap(body, 'Thank you,') };
+    },
+
+    analytics: function () {
+      var t = val('webinarTitle'), s = val('shortName'), d = getDate();
+      var m = parseInt(val('members'), 10), n = parseInt(val('nonMembers'), 10);
+      var split;
+      if (!isNaN(m) && !isNaN(n) && m + n > 0) {
+        var pm = Math.round(m / (m + n) * 100);
+        split = '<strong>' + m + '</strong> Members (' + pm + '%) / <strong>' + n + '</strong> Non-Members (' + (100 - pm) + '%)';
+      } else { split = ph('Members / Non-Members'); }
+      function row(label, value, last) {
+        return '<tr><td style="padding:9px 12px;border-bottom:' + (last ? '0' : '1px solid #e3e3e3') + ';color:' + BLUE + ';font-weight:bold;">' + label + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:' + (last ? '0' : '1px solid #e3e3e3') + ';">' + value + '</td></tr>';
+      }
+      var table = '<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f9f9f9;border-left:4px solid ' + BLUE + ';margin:18px 0;width:100%;max-width:560px;font-size:14px;">' +
+        row('Total Signups', plain('signups', '#')) +
+        row('Live Attendance', plain('liveAtt', '#')) +
+        row('On-Demand / Watch Later', plain('onDemand', '#')) +
+        row('Member vs. Non-Member', split) +
+        row('Total Revenue Generated', plain('revenue', '$'), true) + '</table>';
+      var hl = esc(val('highlights')).replace(/\n/g, '<br>');
+      var body =
+        '<p>Hi everyone,</p>' +
+        '<p>I wanted to share a quick update and the analytics from our <strong>' + (t ? esc(t) : ph('Webinar Title')) + '</strong> webinar that took place ' + whenPast() + '.</p>' +
+        '<p>Thanks to the new Speaker Docket tool Tara created, we can now easily track and break down our webinar metrics (and bypass some of our current YM reporting glitches!). Here is the snapshot of how the ' + (s ? esc(s) : ph('Short Name')) + ' webinar performed:</p>' +
+        table +
+        '<p>' + hl + '</p>' +
+        '<p>I will continue sending these analytics reports to the board after our webinars. Please let me know if you have any questions!</p>';
+      return {
+        subject: 'Post-Webinar Analytics: ' + (s || '[Short Name]') + ' (' + (d ? numDate2(d) : '[Date]') + ')',
+        recipients: 'To: Kara, Jenny, Tara  |  CC: Rachael',
+        html: wrap(body, 'Best regards,')
+      };
+    },
+
+    renewal: function () {
+      var body =
+        '<p>Hello,</p>' +
+        '<p>This is a friendly reminder that your NACBA membership is currently due for renewal!</p>' +
+        '<p>We greatly value your involvement in our community and would love to continue supporting you as a member.</p>' +
+        '<p>Renewing your membership ensures uninterrupted access to NACBA\'s resources, educational programming, advocacy efforts, and exclusive member benefits.</p>' +
+        '<p style="margin-bottom:0;">To renew, please visit <a href="http://www.nacba.org/" style="color:' + LINK + ';">NACBA.org</a> and sign in using your username and password. Once logged in, you will be prompted to complete your renewal.</p>' +
+        button('Renew at NACBA.org', 'http://www.nacba.org/') +
+        '<p>If you have any questions or need assistance, please don\'t hesitate to contact us. We are happy to help!</p>' +
+        '<p>Thank you for your continued support of NACBA.</p>';
+      return { subject: 'NACBA Membership Renewal Reminder', html: wrap(body, 'Best regards,') };
+    },
+
+    referral: function () {
+      var body =
+        '<p>Hello,</p>' +
+        '<p>Thank you for contacting NACBA. We understand that navigating bankruptcy can feel overwhelming, and we want to make sure you get the support you need.</p>' +
+        '<p style="margin-bottom:0;">While NACBA staff are not attorneys and are unable to provide legal advice, our Attorney Finder database can help you connect with a qualified consumer bankruptcy attorney in your area:</p>' +
+        button('Find an Attorney', 'https://nacba.org/page/find-an-attorney') +
+        '<p>We hope this resource points you in the right direction. Please contact us if we can assist you further.</p>';
+      return { subject: 'NACBA Attorney Referral', html: wrap(body, 'Best regards,') };
+    }
+  };
+
+  var current = { subject: '', html: '' };
+
+  function update() {
+    var key = $('template').value, cfg = CONFIG[key];
+    ALL.forEach(function (f) { $('f-' + f).style.display = cfg.show.indexOf(f) >= 0 ? '' : 'none'; });
+    $('linkLabel').textContent = cfg.linkLabel;
+    var l = val('link');
+    $('linkWarn').hidden = !(cfg.show.indexOf('link') >= 0 && l && !isUrl(l));
+    current = BUILDERS[key]();
+    $('subjectLine').textContent = current.subject;
+    $('recipBox').hidden = !current.recipients;
+    $('recipLine').textContent = current.recipients || '';
+    $('emailPreview').innerHTML = current.html;
+  }
+
+  var statusTimer;
+  function say(msg) {
+    $('status').textContent = msg;
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(function () { $('status').textContent = ''; }, 4000);
+  }
+  function selectionCopy(node) {
+    var range = document.createRange();
+    range.selectNodeContents(node);
+    var sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(range);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    sel.removeAllRanges();
+    return ok;
+  }
+
+  $('copyBtn').addEventListener('click', function () {
+    var html = $('emailPreview').innerHTML, text = $('emailPreview').innerText;
+    function fallback() {
+      say(selectionCopy($('emailPreview')) ? 'Email copied. Paste it into Gmail.' : 'Copy blocked. Select the preview and copy manually.');
+    }
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' })
+      })]).then(function () { say('Email copied. Paste it into Gmail.'); }, fallback);
+    } else { fallback(); }
+  });
+
+  $('copySubjectBtn').addEventListener('click', function () {
+    var s = current.subject;
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = s; document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      say(ok ? 'Subject copied.' : 'Copy blocked. Select the subject manually.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(s).then(function () { say('Subject copied.'); }, fallback);
+    } else { fallback(); }
+  });
+
+  ['template', 'webinarTitle', 'shortName', 'dateVal', 'name', 'both', 'link', 'practice', 'live', 'dropbox', 'survey', 'cle',
+   'signups', 'liveAtt', 'onDemand', 'revenue', 'members', 'nonMembers', 'highlights', 'logoPos'].forEach(function (id) {
+    $(id).addEventListener('input', update);
+    $(id).addEventListener('change', update);
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>
